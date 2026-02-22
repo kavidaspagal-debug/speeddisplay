@@ -10,6 +10,7 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -23,14 +24,19 @@ class MainActivity : AppCompatActivity(), LocationListener {
     private lateinit var locationManager: LocationManager
     private lateinit var prefs: SharedPreferences
     private lateinit var gestureDetector: GestureDetector
+    private lateinit var scaleGestureDetector: ScaleGestureDetector
 
     private var isMirrored = false
     private var selectedColor = COLOR_GREEN
+    private var currentTextSize = 280f
+    private val minTextSize = 100f
+    private val maxTextSize = 500f
 
     companion object {
         const val LOCATION_PERMISSION_REQUEST = 1001
         const val PREF_COLOR = "pref_color"
         const val PREF_MIRRORED = "pref_mirrored"
+        const val PREF_TEXT_SIZE = "pref_text_size"
         const val COLOR_GREEN = 0
         const val COLOR_BLUE = 1
         const val COLOR_RED = 2
@@ -42,10 +48,8 @@ class MainActivity : AppCompatActivity(), LocationListener {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Keep screen on
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // Full screen immersive
         window.decorView.systemUiVisibility = (
             View.SYSTEM_UI_FLAG_FULLSCREEN or
             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
@@ -57,12 +61,14 @@ class MainActivity : AppCompatActivity(), LocationListener {
         prefs = getSharedPreferences("SpeedDisplayPrefs", Context.MODE_PRIVATE)
         selectedColor = prefs.getInt(PREF_COLOR, COLOR_GREEN)
         isMirrored = prefs.getBoolean(PREF_MIRRORED, false)
+        currentTextSize = prefs.getFloat(PREF_TEXT_SIZE, 280f)
 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         setupGestureDetector()
         applyColor()
         applyMirror()
+        applyTextSize()
         updateSpeedDisplay(0f)
 
         requestLocationPermission()
@@ -80,10 +86,32 @@ class MainActivity : AppCompatActivity(), LocationListener {
             }
         })
 
+        scaleGestureDetector = ScaleGestureDetector(this,
+            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    currentTextSize *= detector.scaleFactor
+                    currentTextSize = currentTextSize.coerceIn(minTextSize, maxTextSize)
+                    applyTextSize()
+                    return true
+                }
+
+                override fun onScaleEnd(detector: ScaleGestureDetector) {
+                    prefs.edit().putFloat(PREF_TEXT_SIZE, currentTextSize).apply()
+                }
+            })
+
         binding.root.setOnTouchListener { _, event ->
-            gestureDetector.onTouchEvent(event)
+            scaleGestureDetector.onTouchEvent(event)
+            if (!scaleGestureDetector.isInProgress) {
+                gestureDetector.onTouchEvent(event)
+            }
             true
         }
+    }
+
+    private fun applyTextSize() {
+        binding.speedText.textSize = currentTextSize
+        binding.unitText.textSize = currentTextSize * 0.18f
     }
 
     private fun toggleMirror() {
@@ -118,8 +146,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun updateSpeedDisplay(speedKmh: Float) {
-        val speedInt = speedKmh.toInt()
-        binding.speedText.text = speedInt.toString()
+        binding.speedText.text = speedKmh.toInt().toString()
     }
 
     private fun requestLocationPermission() {
@@ -140,14 +167,9 @@ class MainActivity : AppCompatActivity(), LocationListener {
             == PackageManager.PERMISSION_GRANTED) {
             try {
                 locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    500L,
-                    0f,
-                    this
+                    LocationManager.GPS_PROVIDER, 500L, 0f, this
                 )
-            } catch (e: Exception) {
-                // GPS not available
-            }
+            } catch (e: Exception) {}
         }
     }
 
@@ -161,8 +183,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     override fun onLocationChanged(location: Location) {
         if (location.hasSpeed()) {
-            val speedKmh = location.speed * 3.6f
-            updateSpeedDisplay(speedKmh)
+            updateSpeedDisplay(location.speed * 3.6f)
         }
     }
 
@@ -183,7 +204,6 @@ class MainActivity : AppCompatActivity(), LocationListener {
         locationManager.removeUpdates(this)
     }
 
-    // Legacy LocationListener methods
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
     override fun onProviderEnabled(provider: String) {}
     override fun onProviderDisabled(provider: String) {}
