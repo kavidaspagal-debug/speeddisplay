@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun applyMirror() {
-        binding.speedText.scaleX = if (isMirrored) -1f else 1f
+        binding.speedContainer.scaleX = if (isMirrored) -1f else 1f
     }
 
     private fun applyColor() {
