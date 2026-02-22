@@ -1,43 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000"
     android:keepScreenOn="true">
 
-    <TextView
-        android:id="@+id/speedText"
+    <LinearLayout
+        android:id="@+id/speedContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="0"
-        android:textSize="260sp"
-        android:fontFamily="@font/eras_itc_demi"
-        android:textColor="#00FF00"
-        android:includeFontPadding="false"
-        android:gravity="center"
-        app:layout_constraintBottom_toTopOf="@id/unitText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        android:layout_gravity="center"
+        android:orientation="horizontal"
+        android:gravity="bottom">
 
-    <TextView
-        android:id="@+id/unitText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="km/h"
-        android:textSize="36sp"
-        android:fontFamily="@font/eras_itc_demi"
-        android:textColor="#00FF00"
-        android:includeFontPadding="false"
-        android:gravity="center"
-        android:layout_marginBottom="24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/speedText" />
+        <TextView
+            android:id="@+id/speedText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="280sp"
+            android:fontFamily="@font/eras_itc_demi"
+            android:textColor="#00FF00"
+            android:includeFontPadding="false" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/unitText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="km/h"
+            android:textSize="52sp"
+            android:fontFamily="@font/eras_itc_demi"
+            android:textColor="#00FF00"
+            android:includeFontPadding="false"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="24dp" />
+
+    </LinearLayout>
+
+</FrameLayout>
