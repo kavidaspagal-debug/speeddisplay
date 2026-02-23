@@ -21,6 +21,7 @@ class SpeedBarView @JvmOverloads constructor(
     private val maxSpeed = 160f
     private var currentSpeed = 0f
     private val scaleValues = listOf(0, 20, 40, 60, 80, 100, 120, 140, 160)
+    private val minorScaleValues = listOf(10, 30, 50, 70, 90, 110, 130, 150)
 
     private val barWidth = TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_MM, 7.5f,
@@ -68,56 +69,68 @@ class SpeedBarView @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
+    super.onDraw(canvas)
 
-        val totalH = height.toFloat()
-        val drawH = totalH - (verticalPadding * 2)
-        val topOffset = verticalPadding
+    val totalH = height.toFloat()
+    val drawH = totalH - (verticalPadding * 2)
+    val topOffset = verticalPadding
 
-        // Draw background track
-        val bgRect = RectF(0f, topOffset, barWidth, topOffset + drawH)
-        canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, backgroundPaint)
+    // Draw background track
+    val bgRect = RectF(0f, topOffset, barWidth, topOffset + drawH)
+    canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, backgroundPaint)
 
-        // Draw filled bar
-        val fillFraction = currentSpeed / maxSpeed
-        val fillHeight = drawH * fillFraction
-        val fillTop = topOffset + drawH - fillHeight
+    // Draw filled bar
+    val fillFraction = currentSpeed / maxSpeed
+    val fillHeight = drawH * fillFraction
+    val fillTop = topOffset + drawH - fillHeight
 
-        if (fillHeight > 0) {
-            val gradient = LinearGradient(
-                0f, topOffset + drawH,
-                0f, topOffset,
-                intArrayOf(
-                    Color.parseColor("#00FF00"),
-                    Color.parseColor("#FFFF00"),
-                    Color.parseColor("#FF2200")
-                ),
-                floatArrayOf(0f, 0.5f, 1f),
-                Shader.TileMode.CLAMP
-            )
-            barPaint.shader = gradient
-            val fillRect = RectF(0f, fillTop, barWidth, topOffset + drawH)
-            canvas.drawRoundRect(fillRect, cornerRadius, cornerRadius, barPaint)
-        }
+    if (fillHeight > 0) {
+        val gradient = LinearGradient(
+            0f, topOffset + drawH,
+            0f, topOffset,
+            intArrayOf(
+                Color.parseColor("#00FF00"),
+                Color.parseColor("#FFFF00"),
+                Color.parseColor("#FF2200")
+            ),
+            floatArrayOf(0f, 0.5f, 1f),
+            Shader.TileMode.CLAMP
+        )
+        barPaint.shader = gradient
+        val fillRect = RectF(0f, fillTop, barWidth, topOffset + drawH)
+        canvas.drawRoundRect(fillRect, cornerRadius, cornerRadius, barPaint)
+    }
 
-        // Draw tick marks and labels
-        for (speed in scaleValues) {
-            val fraction = speed / maxSpeed
-            val y = topOffset + drawH - (drawH * fraction)
+    // Minor tick marks between main numbers
+    for (speed in minorScaleValues) {
+        val fraction = speed / maxSpeed
+        val y = topOffset + drawH - (drawH * fraction)
+        canvas.drawLine(
+            barWidth + 4f,
+            y,
+            barWidth + 4f + (tickLength * 0.5f),
+            y,
+            tickPaint
+        )
+    }
 
-            // Tick mark
-            canvas.drawLine(
-                barWidth + 4f,
-                y,
-                barWidth + 4f + tickLength,
-                y,
-                tickPaint
-            )
+    // Draw major tick marks and labels
+    for (speed in scaleValues) {
+        val fraction = speed / maxSpeed
+        val y = topOffset + drawH - (drawH * fraction)
 
-            // Label
-            val label = speed.toString()
-            val textY = y + (textPaint.textSize / 3f)
-            canvas.drawText(label, barWidth + tickLength + textMargin + 4f, textY, textPaint)
-        }
+        // Tick mark
+        canvas.drawLine(
+            barWidth + 4f,
+            y,
+            barWidth + 4f + tickLength,
+            y,
+            tickPaint
+        )
+
+        // Label
+        val label = speed.toString()
+        val textY = y + (textPaint.textSize / 3f)
+        canvas.drawText(label, barWidth + tickLength + textMargin + 4f, textY, textPaint)
     }
 }
