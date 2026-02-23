@@ -29,7 +29,7 @@ class SpeedBarView @JvmOverloads constructor(
     )
 
     private val verticalPadding = TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_DIP, 24f,
+        TypedValue.COMPLEX_UNIT_DIP, 10f,
         context.resources.displayMetrics
     )
 
