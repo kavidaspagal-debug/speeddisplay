@@ -121,7 +121,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun applyMirror() {
-    binding.mirrorContainer.scaleX = if (isMirrored) -1f else 1f
+    binding.mirrorContainer.scaleY = if (isMirrored) -1f else 1f
 }
 
     private fun applyColor() {
