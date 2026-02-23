@@ -121,8 +121,9 @@ class MainActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun applyMirror() {
-        binding.speedContainer.scaleX = if (isMirrored) -1f else 1f
-    }
+    binding.speedContainer.scaleX = if (isMirrored) -1f else 1f
+    binding.speedBar.scaleX = if (isMirrored) -1f else 1f
+}
 
     private fun applyColor() {
         val color = when (selectedColor) {
