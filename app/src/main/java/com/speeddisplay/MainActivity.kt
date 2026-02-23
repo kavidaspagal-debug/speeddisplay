@@ -2,11 +2,14 @@ package com.speeddisplay
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.os.BatteryManager
 import android.os.Bundle
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -17,9 +20,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.speeddisplay.databinding.ActivityMainBinding
-import android.os.BatteryManager
-import android.content.Intent
-import android.content.IntentFilter
 
 class MainActivity : AppCompatActivity(), LocationListener {
 
@@ -31,15 +31,15 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     private var isMirrored = false
     private var selectedColor = COLOR_GREEN
-    private var currentTextSize = 280f
-    private val minTextSize = 100f
-    private val maxTextSize = 500f
+    private var currentScale = 1.0f
+    private val minScale = 0.4f
+    private val maxScale = 1.8f
 
     companion object {
         const val LOCATION_PERMISSION_REQUEST = 1001
         const val PREF_COLOR = "pref_color"
         const val PREF_MIRRORED = "pref_mirrored"
-        const val PREF_TEXT_SIZE = "pref_text_size"
+        const val PREF_SCALE = "pref_scale"
         const val COLOR_GREEN = 0
         const val COLOR_BLUE = 1
         const val COLOR_RED = 2
@@ -64,14 +64,14 @@ class MainActivity : AppCompatActivity(), LocationListener {
         prefs = getSharedPreferences("SpeedDisplayPrefs", Context.MODE_PRIVATE)
         selectedColor = prefs.getInt(PREF_COLOR, COLOR_GREEN)
         isMirrored = prefs.getBoolean(PREF_MIRRORED, false)
-        currentTextSize = prefs.getFloat(PREF_TEXT_SIZE, 280f)
+        currentScale = prefs.getFloat(PREF_SCALE, 1.0f)
 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         setupGestureDetector()
         applyColor()
         applyMirror()
-        applyTextSize()
+        applyScale()
         updateSpeedDisplay(0f)
 
         requestLocationPermission()
@@ -92,14 +92,14 @@ class MainActivity : AppCompatActivity(), LocationListener {
         scaleGestureDetector = ScaleGestureDetector(this,
             object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
                 override fun onScale(detector: ScaleGestureDetector): Boolean {
-                    currentTextSize *= detector.scaleFactor
-                    currentTextSize = currentTextSize.coerceIn(minTextSize, maxTextSize)
-                    applyTextSize()
+                    currentScale *= detector.scaleFactor
+                    currentScale = currentScale.coerceIn(minScale, maxScale)
+                    applyScale()
                     return true
                 }
 
                 override fun onScaleEnd(detector: ScaleGestureDetector) {
-                    prefs.edit().putFloat(PREF_TEXT_SIZE, currentTextSize).apply()
+                    prefs.edit().putFloat(PREF_SCALE, currentScale).apply()
                 }
             })
 
@@ -111,17 +111,21 @@ class MainActivity : AppCompatActivity(), LocationListener {
             true
         }
     }
-    private fun getBatteryPercentage(): Int {
-    val ifilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-    val batteryStatus = registerReceiver(null, ifilter)
-    val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
-    val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
-    return if (level >= 0 && scale > 0) (level * 100 / scale) else 0
-}
 
-    private fun applyTextSize() {
-        binding.speedText.textSize = currentTextSize
-        binding.unitText.textSize = currentTextSize * 0.18f
+    private fun applyScale() {
+        // Scale only the speed digits and unit, not the whole screen
+        binding.speedContainer.scaleX = currentScale
+        binding.speedContainer.scaleY = currentScale
+        binding.speedContainer.pivotX = binding.speedContainer.width / 2f
+        binding.speedContainer.pivotY = binding.speedContainer.height / 2f
+    }
+
+    private fun getBatteryPercentage(): Int {
+        val ifilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        val batteryStatus = registerReceiver(null, ifilter)
+        val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+        return if (level >= 0 && scale > 0) (level * 100 / scale) else 0
     }
 
     private fun toggleMirror() {
@@ -131,8 +135,8 @@ class MainActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun applyMirror() {
-    binding.mirrorContainer.scaleY = if (isMirrored) -1f else 1f
-}
+        binding.mirrorContainer.scaleY = if (isMirrored) -1f else 1f
+    }
 
     private fun applyColor() {
         val color = when (selectedColor) {
@@ -156,10 +160,10 @@ class MainActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun updateSpeedDisplay(speedKmh: Float) {
-    binding.speedText.text = speedKmh.toInt().toString()
-    binding.speedBar.setSpeed(speedKmh)
-    binding.batteryText.text = "${getBatteryPercentage()}%"
-}
+        binding.speedText.text = speedKmh.toInt().toString()
+        binding.speedBar.setSpeed(speedKmh)
+        binding.batteryText.text = "${getBatteryPercentage()}%"
+    }
 
     private fun requestLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
