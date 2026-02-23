@@ -36,8 +36,8 @@
                 android:layout_width="130dp"
                 android:layout_height="match_parent"
                 android:layout_marginLeft="16dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp" />
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="0dp" />
 
             <LinearLayout
                 android:id="@+id/speedContainer"
