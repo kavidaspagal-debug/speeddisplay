@@ -146,8 +146,9 @@ class MainActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun updateSpeedDisplay(speedKmh: Float) {
-        binding.speedText.text = speedKmh.toInt().toString()
-    }
+    binding.speedText.text = speedKmh.toInt().toString()
+    binding.speedBar.setSpeed(speedKmh)
+}
 
     private fun requestLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
