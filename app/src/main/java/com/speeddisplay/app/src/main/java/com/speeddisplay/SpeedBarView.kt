@@ -9,6 +9,7 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 
 class SpeedBarView @JvmOverloads constructor(
@@ -20,6 +21,12 @@ class SpeedBarView @JvmOverloads constructor(
     private val maxSpeed = 160f
     private var currentSpeed = 0f
     private val scaleValues = listOf(0, 20, 40, 60, 80, 100, 120, 140, 160)
+
+    // Convert 0.75cm to pixels
+    private val barWidth = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_MM, 7.5f,
+        context.resources.displayMetrics
+    )
 
     private val backgroundPaint = Paint().apply {
         color = Color.parseColor("#1A1A1A")
@@ -37,17 +44,19 @@ class SpeedBarView @JvmOverloads constructor(
     }
 
     private val textPaint = Paint().apply {
-        color = Color.parseColor("#AAAAAA")
-        textSize = 28f
+        color = Color.parseColor("#FF8800")
+        textSize = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_SP, 18f,
+            context.resources.displayMetrics
+        )
         isAntiAlias = true
         typeface = Typeface.DEFAULT_BOLD
         textAlign = Paint.Align.LEFT
     }
 
-    private val cornerRadius = 12f
-    private val barWidth = 40f
-    private val tickLength = 16f
-    private val textMargin = 20f
+    private val cornerRadius = 14f
+    private val tickLength = 18f
+    private val textMargin = 8f
 
     fun setSpeed(speed: Float) {
         currentSpeed = speed.coerceIn(0f, maxSpeed)
@@ -85,7 +94,7 @@ class SpeedBarView @JvmOverloads constructor(
             canvas.drawRoundRect(fillRect, cornerRadius, cornerRadius, barPaint)
         }
 
-        // Draw tick marks and labels beside the bar
+        // Draw tick marks and labels
         for (speed in scaleValues) {
             val fraction = speed / maxSpeed
             val y = h - (h * fraction)
@@ -101,8 +110,8 @@ class SpeedBarView @JvmOverloads constructor(
 
             // Label
             val label = speed.toString()
-            val textY = y + (textPaint.textSize / 3)
-            canvas.drawText(label, barWidth + textMargin + tickLength, textY, textPaint)
+            val textY = y + (textPaint.textSize / 3f)
+            canvas.drawText(label, barWidth + tickLength + textMargin + 4f, textY, textPaint)
         }
     }
 }
