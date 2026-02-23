@@ -17,6 +17,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.speeddisplay.databinding.ActivityMainBinding
+import android.os.BatteryManager
+import android.content.Intent
+import android.content.IntentFilter
 
 class MainActivity : AppCompatActivity(), LocationListener {
 
@@ -108,6 +111,13 @@ class MainActivity : AppCompatActivity(), LocationListener {
             true
         }
     }
+    private fun getBatteryPercentage(): Int {
+    val ifilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+    val batteryStatus = registerReceiver(null, ifilter)
+    val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+    val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+    return if (level >= 0 && scale > 0) (level * 100 / scale) else 0
+}
 
     private fun applyTextSize() {
         binding.speedText.textSize = currentTextSize
@@ -148,6 +158,7 @@ class MainActivity : AppCompatActivity(), LocationListener {
     private fun updateSpeedDisplay(speedKmh: Float) {
     binding.speedText.text = speedKmh.toInt().toString()
     binding.speedBar.setSpeed(speedKmh)
+    binding.batteryText.text = "${getBatteryPercentage()}%"
 }
 
     private fun requestLocationPermission() {
