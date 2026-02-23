@@ -46,7 +46,7 @@ class SpeedBarView @JvmOverloads constructor(
     private val textPaint = Paint().apply {
         color = Color.parseColor("#FF8800")
         textSize = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_SP, 18f,
+    TypedValue.COMPLEX_UNIT_SP, 22f,
             context.resources.displayMetrics
         )
         isAntiAlias = true
